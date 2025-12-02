@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag'
+        required: true
+        type: string
+
+jobs:
+  comprehensive-validation:
+    name: Comprehensive Pre-Release Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build gcc-12 g++-12 clang-15 clang-tidy-15
+        # Remove any existing GCC 14 to avoid conflicts
+        sudo apt-get remove -y gcc-14 g++-14 2>/dev/null || true
+        # Use GCC 12 for better C++20 compatibility
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
+        # Verify compiler version
+        gcc --version
+        # Create symlinks for default clang-tidy command
+        sudo ln -sf /usr/bin/clang-tidy-15 /usr/bin/clang-tidy
+        
+    - name: Run full quality assurance suite
+      run: ./cmake/run-quality-checks.sh
+      
+    - name: Upload QA results
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-qa-validation
+        path: |
+          build/*/
+          !build/*/CMakeFiles/
+          !build/*/*.o
+          !build/*/*.a
+          
+  multi-platform-release:
+    name: Multi-Platform Release Build
+    needs: comprehensive-validation
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build gcc-12 g++-12
+        # Remove any existing GCC 14 to avoid conflicts
+        sudo apt-get remove -y gcc-14 g++-14 2>/dev/null || true
+        # Use GCC 12 for better C++20 compatibility
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
+        # Verify compiler version
+        gcc --version
+        
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake ninja googletest
+        
+    - name: Build release
+      run: |
+        cmake --preset dev-release
+        cmake --build build/dev-release
+        
+    - name: Package release
+      run: |
+        cd build/dev-release
+        cpack
+        
+    - name: Upload release artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-${{ matrix.os }}
+        path: |
+          build/dev-release/*.tar.gz
+          build/dev-release/*.zip
+          build/dev-release/libdbgtracing.a
+          
+  create-release:
+    name: Create GitHub Release
+    needs: multi-platform-release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release-*/*
+        body: |
+          ## DebugTraces Release ${{ github.ref_name }}
+          
+          High-performance C++20 logging library with comprehensive quality assurance.
+          
+          ### Quality Assurance Status
+          - ✅ Static Analysis (Clang-Tidy)
+          - ✅ AddressSanitizer (ASAN)
+          - ✅ ThreadSanitizer (TSAN)
+          - ✅ UndefinedBehaviorSanitizer (UBSAN)
+          - ✅ Cross-platform builds (Linux, macOS)
+          
+          ### Included Files
+          - `libdbgtracing.a` - Static library
+          - Source packages for Linux and macOS
+          
+          See README.md for integration instructions.
+        draft: false
+        prerelease: false

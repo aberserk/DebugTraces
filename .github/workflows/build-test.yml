@@ -1,0 +1,134 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [gcc, clang]
+        build-type: [Debug, Release]
+        exclude:
+          # Skip GCC on macOS as it's actually Clang in disguise
+          - os: macos-latest
+            compiler: gcc
+            
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build gcc-12 g++-12
+        # Remove any existing GCC 14 to avoid conflicts
+        sudo apt-get remove -y gcc-14 g++-14 2>/dev/null || true
+        if [ "${{ matrix.compiler }}" = "clang" ]; then
+          sudo apt-get install -y clang-15 libc++-15-dev libc++abi-15-dev
+          # Ensure clang++-15 exists (should be installed with clang-15)
+          if [ ! -f /usr/bin/clang++-15 ]; then
+            echo "Creating clang++-15 symlink"
+            sudo ln -sf /usr/bin/clang-15 /usr/bin/clang++-15
+          fi
+          # Verify installation
+          ls -la /usr/bin/clang*-15
+        fi
+        # Always set up GCC 12 as system default with high priority
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
+        # Verify compiler version
+        gcc --version
+        g++ --version
+        
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake ninja
+        # Don't install googletest from Homebrew to avoid stdlib conflicts
+        # Don't install llvm - using system clang for better compatibility
+        # Will use FetchContent GoogleTest for consistent libc++ usage
+        
+    - name: Set compiler environment
+      run: |
+        if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          # Verify clang installation
+          clang-15 --version
+          clang++-15 --version
+          echo "CC=clang-15" >> $GITHUB_ENV
+          echo "CXX=clang++-15" >> $GITHUB_ENV
+          # Use libc++ to avoid GCC libstdc++ compatibility issues
+          echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
+          echo "LDFLAGS=-stdlib=libc++ -lc++abi" >> $GITHUB_ENV
+        elif [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.os }}" = "macos-latest" ]; then
+          # Use system clang instead of Homebrew LLVM for better compatibility
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+          # System clang uses libc++ by default on macOS, but be explicit
+          echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
+          echo "LDFLAGS=-stdlib=libc++" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          # Force GCC 12 usage for all Ubuntu builds
+          echo "CC=/usr/bin/gcc-12" >> $GITHUB_ENV
+          echo "CXX=/usr/bin/g++-12" >> $GITHUB_ENV
+        fi
+        
+    - name: Configure CMake
+      run: |
+        # Ensure environment variables are available for CMake
+        if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.os }}" = "macos-latest" ]; then
+          export CC=clang
+          export CXX=clang++
+          export CXXFLAGS="-stdlib=libc++"
+          export LDFLAGS="-stdlib=libc++"
+        fi
+        
+        if [ "${{ matrix.build-type }}" = "Debug" ]; then
+          cmake --preset dev-debug
+          BUILD_DIR="build/dev-debug"
+        else
+          cmake --preset dev-release  
+          BUILD_DIR="build/dev-release"
+        fi
+        echo "BUILD_DIR=$BUILD_DIR" >> $GITHUB_ENV
+        
+    - name: Build
+      run: |
+        # Ensure environment variables are available for build
+        if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.os }}" = "macos-latest" ]; then
+          export CC=clang
+          export CXX=clang++
+          export CXXFLAGS="-stdlib=libc++"
+          export LDFLAGS="-stdlib=libc++"
+        fi
+        cmake --build $BUILD_DIR
+      
+    - name: Test (Debug only - Release has logging disabled)
+      if: matrix.build-type == 'Debug'
+      run: |
+        cd $BUILD_DIR
+        ctest --output-on-failure --timeout 60
+        
+    - name: Test compilation (Release - verify no-op builds)
+      if: matrix.build-type == 'Release'
+      run: |
+        echo "Release build compiled successfully - logging disabled by design"
+        echo "Testing that key executables exist:"
+        ls -la $BUILD_DIR/dbgtracing_tests
+        
+    - name: Upload build artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-failure-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build-type }}
+        path: |
+          build/*/CMakeFiles/CMakeError.log
+          build/*/CMakeFiles/CMakeOutput.log

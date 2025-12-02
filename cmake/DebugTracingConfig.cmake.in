@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+# Bring in exported targets (created by install(EXPORT ...))
+include("${CMAKE_CURRENT_LIST_DIR}/DebugTracingTargets.cmake")
+
+# Validate requested components if any
+check_required_components(@PROJECT_NAME@)
