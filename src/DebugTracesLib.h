@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
+#include <cassert>
 #include "TraceColors.h"
+#include "Logger.h"
 
 // ================= Global compile-time controls =================
 #ifndef TX_TRACE_ENABLED
@@ -28,6 +30,11 @@
 // it overrides the global TX_TRACE_ENABLED.
 #ifndef TX_TRACE_THIS_FILE
   #define TX_TRACE_THIS_FILE TX_TRACE_ENABLED
+#endif
+
+// Legacy per-file switch support
+#if defined(_TRACE_THIS_FILE) && !defined(TX_TRACE_THIS_FILE)
+  #define TX_TRACE_THIS_FILE 1
 #endif
 
 // ================= Public API =================
@@ -163,3 +170,10 @@ struct TxScopeTimer {
 // Expose API as no-ops
 
 #endif  // TX_TRACE_THIS_FILE
+
+#if defined(_DEBUG)
+  #define ASSERT(x) assert(x)
+#else
+  #define ASSERT(x) ((void)(x))
+#endif
+

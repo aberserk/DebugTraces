@@ -6,30 +6,30 @@
 
 #include "Writer.h"
 
-#define __FILENAME__ (strrchr(__FILE__, \'\\') ? strrchr(__FILE__, \'\\') + 1 : (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__))
+#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__))
 
 #define TRACE_ERROR(message)   TX_Logger::getPtr()->writeError(message);
 #define TRACE_WARNING(message) TX_Logger::getPtr()->writeWarning(message);
 #define TRACE_INFO(message)    TX_Logger::getPtr()->writeInfo(message);
 
-#define LogFatal(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_FATAL, __FILENAME__, __LINE__, __VA_ARGS__)
-#define LogFatalStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_FATAL, __FILENAME__, __LINE__, __VA_ARGS__)
+#define LogFatal(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_FATAL, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
+#define LogFatalStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_FATAL, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
 
-#define LogError(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_ERROR, __FILENAME__, __LINE__, __VA_ARGS__)
-#define LogErrorStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_ERROR, __FILENAME__, __LINE__, __VA_ARGS__)
+#define LogError(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_ERROR, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
+#define LogErrorStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_ERROR, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
 
-#define LogWarn(format, ...)          TX_Logger::getPtr()->writeLine(LogLevel::LL_WARN , __FILENAME__, __LINE__, __VA_ARGS__)
-#define LogWarnStatic(format, ...)    TX_Logger::getPtr()->writeLine(LogLevel::LL_WARN , __FILENAME__, __LINE__, __VA_ARGS__)
+#define LogWarn(format, ...)          TX_Logger::getPtr()->writeLine(LogLevel::LL_WARN , __FILENAME__, __LINE__, format, ##__VA_ARGS__)
+#define LogWarnStatic(format, ...)    TX_Logger::getPtr()->writeLine(LogLevel::LL_WARN , __FILENAME__, __LINE__, format, ##__VA_ARGS__)
 
-#define LogInfo(format, ...)          TX_Logger::getPtr()->writeLine(LogLevel::LL_INFO , __FILENAME__, __LINE__, __VA_ARGS__)
-#define LogInfoStatic(format, ...)    TX_Logger::getPtr()->writeLine(LogLevel::LL_INFO , __FILENAME__, __LINE__, __VA_ARGS__)
+#define LogInfo(format, ...)          TX_Logger::getPtr()->writeLine(LogLevel::LL_INFO , __FILENAME__, __LINE__, format, ##__VA_ARGS__)
+#define LogInfoStatic(format, ...)    TX_Logger::getPtr()->writeLine(LogLevel::LL_INFO , __FILENAME__, __LINE__, format, ##__VA_ARGS__)
 
 #ifdef _DEBUG
-#define LogDebug(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_DEBUG, __FILENAME__, __LINE__, __VA_ARGS__)
-#define LogDebugStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_DEBUG, __FILENAME__, __LINE__, __VA_ARGS__)
+#define LogDebug(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_DEBUG, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
+#define LogDebugStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_DEBUG, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
 
-#define LogTrace(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_TRACE, __FILENAME__, __LINE__, __VA_ARGS__)
-#define LogTraceStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_TRACE, __FILENAME__, __LINE__, __VA_ARGS__)
+#define LogTrace(format, ...)         TX_Logger::getPtr()->writeLine(LogLevel::LL_TRACE, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
+#define LogTraceStatic(format, ...)   TX_Logger::getPtr()->writeLine(LogLevel::LL_TRACE, __FILENAME__, __LINE__, format, ##__VA_ARGS__)
 #else
 #define LogDebug(format, ...)
 #define LogDebugStatic(format, ...)
