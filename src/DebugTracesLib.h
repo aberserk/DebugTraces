@@ -33,7 +33,7 @@
 #endif
 
 // Legacy per-file switch support
-#if defined(_TRACE_THIS_FILE) && !defined(TX_TRACE_THIS_FILE)
+#if defined(TX_TRACE_THIS_FILE) && !defined(TX_TRACE_THIS_FILE)
   #define TX_TRACE_THIS_FILE 1
 #endif
 
