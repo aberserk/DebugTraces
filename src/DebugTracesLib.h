@@ -4,6 +4,41 @@
 #include "TraceColors.h"
 #include "Logger.h"
 
+// ================= Utility macros =================
+#if defined(_MSC_VER)
+  #define DBGTRACE_PRAGMA_MESSAGE(x) __pragma(message(x))
+#elif defined(__clang__) || defined(__GNUC__)
+  #define DBGTRACE_PRAGMA_MESSAGE(x) _Pragma(#x)
+#else
+  #define DBGTRACE_PRAGMA_MESSAGE(x)
+#endif
+
+#define DBGTRACE_EXPAND(x) x
+#define DBGTRACE_CONCAT_IMPL(a, b) a##b
+#define DBGTRACE_CONCAT(a, b) DBGTRACE_CONCAT_IMPL(a, b)
+
+#if defined(_DEBUG)
+  #define DBGTRACE_WARN_TRACE_DEBUG 1
+#else
+  #define DBGTRACE_WARN_TRACE_DEBUG 0
+#endif
+
+#define DBGTRACE_BOOL_AND_IMPL(a, b) DBGTRACE_CONCAT(DBGTRACE_BOOL_AND_, DBGTRACE_CONCAT(a, b))
+#define DBGTRACE_BOOL_AND(a, b) DBGTRACE_BOOL_AND_IMPL(a, b)
+#define DBGTRACE_BOOL_AND_00 0
+#define DBGTRACE_BOOL_AND_01 0
+#define DBGTRACE_BOOL_AND_10 0
+#define DBGTRACE_BOOL_AND_11 1
+
+#define DBGTRACE_WARN_TRACE_EMIT() DBGTRACE_PRAGMA_MESSAGE(message("File Being Traced!"))
+#define DBGTRACE_WARN_TRACE_SELECT(x) DBGTRACE_CONCAT(DBGTRACE_WARN_TRACE_, x)
+#define DBGTRACE_WARN_TRACE_0
+#define DBGTRACE_WARN_TRACE_1 DBGTRACE_WARN_TRACE_EMIT()
+
+#define WARN_TRACE(flag) \
+  DBGTRACE_WARN_TRACE_SELECT( \
+    DBGTRACE_BOOL_AND(DBGTRACE_EXPAND(flag), DBGTRACE_WARN_TRACE_DEBUG))
+
 // ================= Global compile-time controls =================
 #ifndef TX_TRACE_ENABLED
   #if defined(NDEBUG)
