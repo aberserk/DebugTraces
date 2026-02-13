@@ -119,6 +119,7 @@ struct TxScopeTimer {
 #define LOGI(fmt, ...) tx_log_emit(TxLogLevel::INFO,  __FILE__, __LINE__, __func__, fmt __VA_OPT__(,) __VA_ARGS__)
 #define LOGD(fmt, ...) tx_log_emit(TxLogLevel::DBG, __FILE__, __LINE__, __func__, fmt __VA_OPT__(,) __VA_ARGS__)
 #define TRACE(fmt, ...) tx_log_emit(TxLogLevel::DBG, __FILE__, __LINE__, __func__, fmt __VA_OPT__(,) __VA_ARGS__)
+#define TRACE_FUNCTION_NAME() TRACE("%s", __func__)
 #else
 // Fallback for older compilers: suppress the warning with pragma
 #ifdef __clang__
@@ -131,6 +132,7 @@ struct TxScopeTimer {
 #define LOGI(fmt, ...) tx_log_emit(TxLogLevel::INFO,  __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 #define LOGD(fmt, ...) tx_log_emit(TxLogLevel::DBG, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 #define TRACE(fmt, ...) tx_log_emit(TxLogLevel::DBG, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define TRACE_FUNCTION_NAME() TRACE("%s", __func__)
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -187,6 +189,7 @@ void tx_log_flush();
 #define LOGI(...)   do{}while(0)
 #define LOGD(...)   do{}while(0)
 #define TRACE(...)  do{}while(0)
+#define TRACE_FUNCTION_NAME() do{}while(0)
 #define LOGTIMER(...) do{}while(0)
 #define LOG_TO_FILE(...) do{}while(0)
 #define ENABLE_THREAD_ID_TRACING() do{}while(0)
