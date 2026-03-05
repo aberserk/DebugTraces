@@ -95,6 +95,8 @@ bool tx_log_is_enabled();
 void tx_log_flush();
 void tx_log_enable_thread_id(bool enabled);
 bool tx_log_is_thread_id_enabled();
+void tx_log_set_level(TxLogLevel level);  // ERROR suppresses WARN/INFO/DBG; DBG allows all
+TxLogLevel tx_log_get_level();
 
 #ifdef __cplusplus
 }
@@ -176,6 +178,8 @@ void tx_log_enable_thread_id(bool);
 bool tx_log_is_thread_id_enabled();
 bool tx_log_is_enabled();
 void tx_log_flush();
+void tx_log_set_level(TxLogLevel level);
+TxLogLevel tx_log_get_level();
 
 #ifdef __cplusplus
 }

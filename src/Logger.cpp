@@ -30,6 +30,7 @@ static std::mutex g_log_mu;
 static std::string g_file_path = get_initial_file_path();  // Process-unique by default
 static std::atomic<bool> g_file_enabled{false};  // Only log to file if LOG_TO_FILE() is called
 static std::atomic<bool> g_thread_id_enabled{TRACE_THREAD_ID != 0};  // Runtime thread ID control
+static std::atomic<TxLogLevel> g_log_level{TxLogLevel::DBG};          // Default: all messages pass
 static std::ofstream g_file_stream;
 
 // RAII cleanup class to close file on process exit
@@ -162,6 +163,9 @@ extern "C" {
 
 void tx_log_emit(TxLogLevel lvl, const char* file, int line,
                  const char* /* func */, const char* fmt, ...) {
+    // Level gate – discard messages finer than the active level
+    if (lvl > g_log_level.load()) return;
+
     std::lock_guard<std::mutex> lock(g_log_mu);
     
     // Format message
@@ -299,6 +303,14 @@ bool tx_log_is_thread_id_enabled() {
     return g_thread_id_enabled.load();
 }
 
+void tx_log_set_level(TxLogLevel level) {
+    g_log_level.store(level);
+}
+
+TxLogLevel tx_log_get_level() {
+    return g_log_level.load();
+}
+
 } // extern "C"
 
 // Helper to get nanosecond timestamp for timing
@@ -350,6 +362,14 @@ bool tx_log_is_enabled() {
 
 void tx_log_flush() {
     // No-op stub for Release builds
+}
+
+void tx_log_set_level(TxLogLevel) {
+    // No-op stub for Release builds
+}
+
+TxLogLevel tx_log_get_level() {
+    return TxLogLevel::DBG;  // No-op stub for Release builds
 }
 
 } // extern "C"
