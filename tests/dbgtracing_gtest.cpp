@@ -239,11 +239,11 @@ TEST_F(MinimalDebugTracesTest, ThreadSafety) {
     std::atomic<int> completed_threads{0};
     
     for (int i = 0; i < num_threads; ++i) {
-        threads.emplace_back([i, &completed_threads]() {
+        threads.emplace_back([&completed_threads](int thread_index) {
             for (int j = 0; j < messages_per_thread; ++j) {
-                LOGI("Thread %d message %d", i, j);
-                LOGW("Thread %d warning %d", i, j);
-                TRACE("Thread %d trace %d", i, j);
+                LOGI("Thread %d message %d", thread_index, j);
+                LOGW("Thread %d warning %d", thread_index, j);
+                TRACE("Thread %d trace %d", thread_index, j);
                 
                 // Add some timing stress
                 {
@@ -252,7 +252,7 @@ TEST_F(MinimalDebugTracesTest, ThreadSafety) {
                 }
             }
             completed_threads++;
-        });
+        }, i);
     }
     
     // Wait for all threads

@@ -233,7 +233,6 @@ if (DBGTR_BUILD_TESTS)
     target_compile_features(${DBGTR_TARGET_NAME}_tests PRIVATE cxx_std_17)
     target_link_libraries(${DBGTR_TARGET_NAME}_tests PRIVATE
       ${DBGTR_TARGET_ALIAS}
-      GTest::gtest
       GTest::gtest_main
     )
     
