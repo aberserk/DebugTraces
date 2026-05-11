@@ -53,7 +53,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-26]
         
     steps:
     - name: Checkout code
@@ -73,7 +73,7 @@ jobs:
         gcc --version
         
     - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-26'
       run: |
         brew install cmake ninja googletest
         
