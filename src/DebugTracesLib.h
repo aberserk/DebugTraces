@@ -17,7 +17,7 @@
 #define DBGTRACE_CONCAT_IMPL(a, b) a##b
 #define DBGTRACE_CONCAT(a, b) DBGTRACE_CONCAT_IMPL(a, b)
 
-#if defined(_DEBUG)
+#if defined(NDEBUG)
   #define DBGTRACE_WARN_TRACE_DEBUG 0
 #else
   #define DBGTRACE_WARN_TRACE_DEBUG 1
