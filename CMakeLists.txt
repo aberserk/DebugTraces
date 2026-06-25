@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20...3.24)
 
 project(DebugTracing VERSION 1.0.0 LANGUAGES CXX)
 
@@ -201,6 +201,7 @@ if (DBGTR_BUILD_TESTS)
       googletest
       GIT_REPOSITORY https://github.com/google/googletest.git
       GIT_TAG        v1.14.0
+      DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     
     # For MSVC compatibility
