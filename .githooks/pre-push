@@ -11,9 +11,9 @@ fi
 
 check_conflicts_in_commit() {
   local commit="$1"
-  if git grep -nE "^(<<<<<<<|=======|>>>>>>>)" "$commit" -- . >/dev/null 2>&1; then
+  if git grep -nE "^(<<<<<<<[[:space:]].*|=======[[:space:]]*$|>>>>>>>[[:space:]].*)$" "$commit" -- . >/dev/null 2>&1; then
     echo "[pre-push] conflict markers detected in commit $commit" >&2
-    git grep -nE "^(<<<<<<<|=======|>>>>>>>)" "$commit" -- . >&2 || true
+    git grep -nE "^(<<<<<<<[[:space:]].*|=======[[:space:]]*$|>>>>>>>[[:space:]].*)$" "$commit" -- . >&2 || true
     return 1
   fi
 }
