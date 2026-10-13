@@ -57,7 +57,11 @@ target_include_directories(${DBGTR_TARGET_NAME}
 )
 
 # C++ standard + warnings
-target_compile_features(${DBGTR_TARGET_NAME} PUBLIC cxx_std_20)
+set_target_properties(${DBGTR_TARGET_NAME} PROPERTIES
+  CXX_STANDARD 20
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
 
 if (DBGTR_WARNINGS)
   if (MSVC)
